@@ -4,17 +4,121 @@ output: html_notebook
 ---
 
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+# Gradient Descent 
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+Gradient Descent is an optimization algorithm that is frequently used in machine learning to minimize an objective/cost function $c(x)$ to find the parameter estimates.
+
+
+**The first challenge is defining the problem**
+
+
+Modern machine learning techniques are often so well engineered and ubiquitous (abstracted away through well optimized packages) that the hardest challenge can be defining the problem.
+
+Once the problem is well defined: the model is specified and an objective function is determined; the parameters need to be estimated. 
+
+Gradient descent is an *optimization algorithm* to search for the parameters.
+
+# OLS Regression
+Gradient descent can be applied to many cost/objective functions, but for the point of illustration we will use Ordinary Least Squares (OLS) regression (a model that can be solved analytically - such that we can compare the true parameter estimates to those estimated with gradient descent). OLS is also a nice camparison model as almost anyone understand its.
+
+Suppose we create an artificial dataset that takes the form:
+$$X \in [1:100]$$
+$$Y = \beta_0 + \beta_1X  + \epsilon$$
+where:
+$\beta_0 = 3.14159$
+$\beta_1 = 2.71828$
+
 
 ```{r}
-plot(cars)
+library(ggplot2)
+
+# generate data
+X = seq(1,100)
+y = 3.14159 + 2.71828*X + runif(length(X), min=-70, max=70)*runif(length(X))
+data = data.frame(cbind(X,y))
+
+
+# visualize the data
+ggplot(data, aes(x=X, y=y)) + geom_point(color="lightblue") + ggtitle('Generated Data') + theme_dark()
+
+
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+## Loss function
+The loss function for OLS is to minimize the sum of square errors
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+$$Q = \sum_{i=1}^n (y-\hat{y})^2$$
+where $\hat{y}$ is the predicted values given by 
+$$ \hat{y} = \hat{\beta_0} + \hat{\beta_1}X$$
+The $\hat{\boldsymbol{\beta}}$ (matrix notation) can be analytically solved with either OLS or Maximum Likelihood estimation (MLE), both yeilding (in matrix notation) parameter estimates:
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+$$\hat{\boldsymbol{\beta}} = (X`X)^{-1}X`y$$
+
+If we fit this model, we obtaining the following parameter estimates:
+```{r}
+library(MASS)
+
+# define an intercept for X
+x = cbind(rep(1,length(X)), X)
+XX = t(x)%*%x
+
+# Solve for Beta
+beta_ols = solve(XX) %*% (t(x)%*%y)
+print(beta_ols)
+
+
+# fit the model 
+yh = beta_ols[1] + beta_ols[2]*X
+
+# create dataset
+data = data.frame(cbind(x, y, yh))
+
+```
+
+```{r}
+# plot 
+ggplot(data, aes(x=X, y=y)) + geom_point(color="lightblue") + ggtitle('OLS fitted line') + theme_dark() + geom_smooth(aes(x=X, y=yh), color='darkred')
+
+```
+
+The OLS parameter estimates are very close to the true values and the model fits very well. Can the same results be achieved with Gradient Descent?
+
+
+# Gradient Descent Algorithm
+
+Gradient descent is used to minimize the loss function. 
+
+Given an objective function, gradient descent iteratively:
+
+ - Randomly initializes the parameter values. 
+ 
+ - Takes the partial derivatives of the loss to w.r.t each parameter value to compute the slopes.
+ 
+ - Multiplies the slopes with the learning rate - a prespecified quantity that determines how much the algorithm should adjust values per iteration: smaller steps result in more accuracy but with a longer training time.
+ 
+ - Compute new parameter values.
+ 
+ - Repeat until convergence.
+ 
+ 
+Using intial values $\mathbf{\hat{\beta_a}} = \mathbf{0}$, implement gradient descent:
+```{r}
+# initial parameters
+b0 = c
+
+
+```
+ 
+
+# Stochastic Gradient Descent
+ 
+Stochastic gradient descent, used here, is simply a variant of the standard algorithm that utilizes random mini-batches to update parameters - a scalable solution as the number of computations per iteration balloons as data &/or parameters scale. 
+
+
+
+
+
+
+
+
 
